@@ -1,0 +1,86 @@
+# ================================== #
+#  Arquivos de IDE (PyCharm / VSCode)
+# ================================== #
+# Arquivos de projeto e configurações do PyCharm / IntelliJ
+.idea/
+
+# Arquivos de projeto e configurações do VSCode (permite compartilhar configurações)
+.vscode/*
+!/.vscode/settings.json
+!/.vscode/tasks.json
+!/.vscode/launch.json
+!/.vscode/extensions.json
+
+
+# ================================== #
+#  Dependências e Builds PYTHON
+# ================================== #
+
+# Pasta do ambiente virtual. ESSENCIAL ignorar.
+venv/
+.venv/
+env/
+.env/
+
+# Arquivos de ambiente com segredos. Ignore-os e use um .env.example.
+.env
+.env.*
+!.env.example
+
+# Arquivos de bytecode compilado e caches do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Relatórios e caches de testes
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Pacotes de distribuição
+/build/
+/dist/
+*.egg-info/
+*.egg
+
+
+# ================================== #
+#  Dependências e Builds ANGULAR / NODE
+# ================================== #
+
+# Dependências do Node.js
+/frontend/node_modules/
+
+/frontend/.angular/
+
+# Pasta de build e cache do Angular
+/dist/
+/tmp/
+/.angular/
+
+# Logs de dependências
+npm-debug.log*
+yarn-error.log
+yarn-debug.log
+
+# Relatórios de cobertura de testes
+/coverage/
+
+
+# ================================== #
+#  Arquivos de Sistema Operacional
+# ================================== #
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+
+# ================================== #
+#  Arquivos do Docker (Opcional)
+# ================================== #
+# Geralmente, o que entra no build do Docker é controlado pelo .dockerignore,
+# mas podemos ignorar arquivos locais relacionados se necessário.
+docker-compose.override.yml

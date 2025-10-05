@@ -1,0 +1,59 @@
+services:
+
+  db:
+    image: mysql:8.0
+    container_name: aps-db-dev
+    restart: always
+    environment:
+      MYSQL_DATABASE: aps_db
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+    networks:
+      - aps-network
+
+  backend:
+    image: python:3.11-slim-bookworm
+    container_name: api-biometria-dev
+    restart: always
+    depends_on: 
+      - db
+    working_dir: /app
+    volumes:
+      - ./api:/app
+    ports:
+      - "5000:5000"
+    networks:
+      - aps-network
+    environment:
+      DB_HOST: db
+      DB_USER: user
+      DB_PASSWORD: user
+      DB_NAME: aps_db
+      FLASK_DEBUG: 1
+      FLASK_APP: app.py
+    command: sh -c "apt-get update && apt-get install -y cmake build-essential && pip install -r requirements.txt && flask run --host=0.0.0.0"
+
+  frontend:
+    image: node:22-alpine
+    container_name: frontend-dev
+    restart: always
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "4200:4200"
+    networks:
+      - aps-network
+    command: sh -c "npm install && npm start"
+
+networks:
+  aps-network:
+
+volumes:
+  db_data:
