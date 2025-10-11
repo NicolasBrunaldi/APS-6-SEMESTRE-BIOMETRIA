@@ -1,0 +1,39 @@
+/* Container principal que ocupará a tela inteira */
+
+.titulo{
+    font-size: 48px;
+}
+
+.botoes {
+    background-color: white;
+}
+
+.home-container {
+  /* Ativa o modo Flexbox */
+  display: flex;
+  color: white;
+
+  /* Empilha os itens verticalmente (o h1 em cima, a div de botões embaixo) */
+  flex-direction: column;
+
+  /* Centraliza horizontalmente */
+  align-items: center;
+
+  /* Centraliza verticalmente */
+  justify-content: center;
+
+  /* Garante que o container tenha no mínimo a altura da tela, essencial para o alinhamento vertical */
+  min-height: 100vh;
+
+  /* Adiciona um espaçamento entre o título e a caixa de botões */
+  gap: 2rem;
+}
+
+/* Container específico para os botões */
+.button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Alinha os botões ao centro */
+  gap: 15px; /* Adiciona um espaço entre cada botão */
+  text-align: center; /* Centraliza o h3 */
+}

@@ -1,0 +1,67 @@
+<div class="cadastro-user-modal-container">
+   <form [formGroup]="cadastroForm" (ngSubmit)="cadastrarUser()">
+    <h1>Cadastro</h1>
+    
+    <mat-form-field appearance="outline">
+        <mat-label>Nome</mat-label>
+        <input matInput placeholder="Nome Completo" formControlName="nome" name="nome">
+    </mat-form-field>
+    
+    <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput placeholder="example@gmail.com" formControlName="email" name="email">
+    </mat-form-field>
+    
+    <mat-form-field appearance="outline">
+        <mat-label>Telefone</mat-label>
+        <input matInput placeholder="(11) 91234-5678" formControlName="telefone" name="telefone">
+    </mat-form-field>
+    
+    <mat-form-field appearance="outline">
+        <mat-label>Nível de Acesso</mat-label>
+        <mat-select formControlName="nivelAcesso" name="nivelAcesso">
+            <mat-option [value]=1>Nível 1</mat-option>
+            <mat-option [value]=2>Nível 2</mat-option>
+            <mat-option [value]=3>Nível 3</mat-option>
+        </mat-select>
+    </mat-form-field>
+        <mat-divider></mat-divider>
+
+    <div class="biometric-container">
+      <h3>Biometria Facial</h3>
+      
+      <button mat-stroked-button color="primary" (click)="startCamera()">
+        <mat-icon>camera_alt</mat-icon>
+        Ligar Câmera para Registro Facial
+      </button>
+
+      @if(isCameraOn) {
+      <div class="camera-view">
+        <video #videoElement autoplay playsinline></video>
+        <button mat-fab extended color="accent" (click)="captureImage()">
+          <mat-icon>photo_camera</mat-icon>
+          Capturar Imagem
+        </button>
+      </div>
+    }
+      @if(validationMessage) {
+        <mat-error>{{ validationMessage }}</mat-error>
+      }
+    @if(capturedImage !== null) {
+        <div class="snapshot-view">
+        <p>Pré-visualização:</p>
+        <img [src]="capturedImage" alt="Imagem capturada">
+        <button mat-button color="primary" (click)="startCamera()">Tirar outra foto</button>
+      </div>
+    }
+    
+    <canvas #canvasElement></canvas>
+
+    </div>
+    
+    <mat-dialog-actions>
+        <button mat-button [mat-dialog-close]="false">Cancelar</button>
+        <button mat-raised-button color="primary" type="submit">Confirmar</button>
+    </mat-dialog-actions>
+    </form>
+</div>

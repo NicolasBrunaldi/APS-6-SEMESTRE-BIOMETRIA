@@ -1,1 +1,31 @@
 /* You can add global styles to this file, and also import other style files */
+
+html, body { height: 100%; background-color: #57D2BD;}
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Estilos para Snackbar Messages */
+.error-snackbar {
+  background-color: #f44336 !important; /* Vermelho */
+  color: white !important;
+}
+
+.success-snackbar {
+  background-color: #4caf50 !important; /* Verde */
+  color: white !important;
+}
+
+.info-snackbar {
+  background-color: #2196f3 !important; /* Azul */
+  color: white !important;
+}
+
+.warning-snackbar {
+  background-color: #ff9800 !important; /* Laranja */
+  color: white !important;
+}
+
+/* Personalizar botão do snackbar */
+.mat-snack-bar-action {
+  color: white !important;
+  font-weight: bold !important;
+}
