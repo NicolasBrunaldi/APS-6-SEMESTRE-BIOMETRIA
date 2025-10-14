@@ -1,0 +1,27 @@
+<div class="security-code-modal">
+    <h1> Codigo de Segurança</h1>
+    <mat-dialog-content>
+        <p class="texto">Para se cadastrar deve inserir o codigo de segurança fornecido pela equipe</p>
+
+        <mat-form-field appearance="outline" [class.error-field]="hasError">
+            <mat-label>Código de Segurança</mat-label>
+            <input matInput 
+                   #codeInput 
+                   type="text" 
+                   inputmode="numeric" 
+                   pattern="[0-9]*" 
+                   maxlength="6" 
+                   placeholder="000000"
+                   [class.error-input]="hasError"
+                   (input)="onlyNumbers($event)">
+        </mat-form-field>
+        @if(hasError) {
+            <mat-error>{{ errorMessage }}</mat-error>
+        }
+    </mat-dialog-content>
+
+    <mat-dialog-actions >
+        <button mat-button (click)="cancel()">Cancelar</button>
+        <button mat-raised-button color="primary" (click)="confirmCode()">Confirmar</button>
+    </mat-dialog-actions>
+</div>

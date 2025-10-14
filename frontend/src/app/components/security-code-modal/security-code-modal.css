@@ -1,0 +1,39 @@
+.security-code-modal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    }
+
+.texto{
+    font-size: 16px;
+}
+
+/* Estilos para campos com erro */
+.error-field {
+    border-color: #f44336 !important;
+}
+
+.error-field .mat-mdc-form-field-outline-thick {
+    border-color: #f44336 !important;
+    border-width: 2px !important;
+}
+
+.error-input {
+    color: #f44336 !important;
+}
+
+.error-field .mat-mdc-form-field-label {
+    color: #f44336 !important;
+}
+
+/* Personalizar a mensagem de erro - Mais específico */
+.mat-mdc-form-field-error,
+.mat-error {
+    color: #f44336 !important;
+    font-size: 12px !important;
+    margin-top: 4px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}

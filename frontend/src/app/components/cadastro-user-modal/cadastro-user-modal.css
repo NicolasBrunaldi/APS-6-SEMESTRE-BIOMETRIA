@@ -1,0 +1,65 @@
+.cadastro-user-modal-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    text-align: center;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.cadastro-user-modal-container mat-form-field {
+    width: 100%;
+}
+
+.cadastro-user-modal-container mat-dialog-actions {
+    width: 100%;
+    justify-content: center;
+}
+
+.biometric-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.camera-view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.camera-view video {
+    max-width: 280px;
+    max-height: 210px;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+}
+
+.snapshot-view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.snapshot-view img {
+    max-width: 280px;
+    max-height: 210px;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+}
+
+canvas {
+    display: none;
+}
