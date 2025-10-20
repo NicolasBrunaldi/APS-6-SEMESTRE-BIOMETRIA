@@ -37,3 +37,13 @@
   gap: 15px; /* Adiciona um espaço entre cada botão */
   text-align: center; /* Centraliza o h3 */
 }
+
+.content-card {
+    background-color: white;
+    color: black;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 20px auto;
+}

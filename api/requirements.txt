@@ -1,5 +1,7 @@
 Flask
 opencv-python
+opencv-contrib-python
+PyJWT
 face_recognition
 dlib
 mysql-connector-python

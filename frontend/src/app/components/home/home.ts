@@ -4,20 +4,22 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SecurityCodeModal } from '../security-code-modal/security-code-modal';
 import { CadastroUserModal } from '../cadastro-user-modal/cadastro-user-modal';
+import { ValidacaoFacialModal } from '../validacao-facial--modal/validacao-facial-modal';
+import { MatCardModule } from '@angular/material/card';
 
 @Component({
   selector: 'app-home',
-  imports: [MatButtonModule],
+  imports: [MatButtonModule, MatCardModule],
   templateUrl: './home.html',
   styleUrl: './home.css'
 })
-export class Home implements OnInit{
+export class Home{
+
+  isAuthenticated = false;
+  welcomeMessage: string | null = null;
+  secretContent: string | null = null;
 
   constructor(public dialog: MatDialog, private snackBar: MatSnackBar) {}
-
-  ngOnInit() {
-    this.getCodigoSeguranca();
-  }
 
   solicitarCodigoCadastro() {
 
@@ -28,7 +30,6 @@ export class Home implements OnInit{
 
     dialogRef.afterClosed().subscribe(result => {
       if (result && result.success) {
-        this.showSuccessMessage("Código correto! Redirecionando...");
         this.openCadastroUserModal();
       }
     });
@@ -39,38 +40,43 @@ export class Home implements OnInit{
       width: '500px',
       disableClose: true
     });
+
+    
   }
 
-  getCodigoSeguranca() {
-    //this.AuthService.getCodigoSeguranca()
-  }
+  solicitarAcesso(nivelAcesso: number) {
 
-  // Métodos para exibir mensagens amigáveis
-  showErrorMessage(message: string) {
-    this.snackBar.open(message, 'Fechar', {
-      duration: 4000, // 4 segundos
-      panelClass: ['error-snackbar'],
-      horizontalPosition: 'center',
-      verticalPosition: 'top'
+    const dialogRef = this.dialog.open(ValidacaoFacialModal, {
+      width: '500px',
+      disableClose: true,
+      data: { nivelAcesso }
+    });
+
+// --- PASSO 1: "Ouça" o fechamento do modal ---
+    dialogRef.afterClosed().subscribe(result => {
+      // 'result' é o que você enviou no dialogRef.close() do modal
+      // Ex: { success: true, data: { message, token, content } }
+      
+      console.log('Modal de validação fechado. Resultado:', result);
+
+      if (result && result.success) {
+        // Se a autenticação foi bem-sucedida, atualize o estado!
+        this.isAuthenticated = true;
+        this.welcomeMessage = result.data.message; // Ex: "Bem-vindo, Usuário!"
+        this.secretContent = result.data.content;  // O conteúdo secreto
+        
+        // (Opcional, mas bom para segurança) Salve o token
+        localStorage.setItem('authToken', result.data.token);
+        }
     });
   }
 
-  showSuccessMessage(message: string) {
-    this.snackBar.open(message, 'Fechar', {
-      duration: 3000, // 3 segundos
-      panelClass: ['success-snackbar'],
-      horizontalPosition: 'center',
-      verticalPosition: 'top'
-    });
+  logout() {
+    // Reseta o estado da aplicação para voltar à tela inicial
+    this.isAuthenticated = false;
+    this.welcomeMessage = null;
+    this.secretContent = null;
+    // localStorage.removeItem('authToken');
+    this.snackBar.open('Você foi desconectado.', 'Fechar', { duration: 3000 });
   }
-
-  showInfoMessage(message: string) {
-    this.snackBar.open(message, 'OK', {
-      duration: 5000, // 5 segundos
-      panelClass: ['info-snackbar'],
-      horizontalPosition: 'center',
-      verticalPosition: 'top'
-    });
-  }
-
 }

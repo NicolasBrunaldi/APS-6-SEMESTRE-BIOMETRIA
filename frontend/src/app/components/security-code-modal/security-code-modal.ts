@@ -4,6 +4,8 @@ import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { AuthService } from '../../services/auth-service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-security-code-modal',
@@ -11,16 +13,15 @@ import { MatInputModule } from '@angular/material/input';
   templateUrl: './security-code-modal.html',
   styleUrl: './security-code-modal.css'
 })
-export class SecurityCodeModal {
+export class SecurityCodeModal{
 
   hasError = false;
   errorMessage = '';
   codeValue = '';
 
   constructor(
-    public dialogRef: MatDialogRef<SecurityCodeModal>
+    public dialogRef: MatDialogRef<SecurityCodeModal>, private authService: AuthService
   ) {}
-
   // Método para permitir apenas números
   onlyNumbers(event: any) {
     const input = event.target;
@@ -40,17 +41,18 @@ export class SecurityCodeModal {
     }
   }
 
-  confirmCode() {
+  async asyncconfirmCode() {
     if (this.codeValue.length < 6) {
       this.showError('O código deve ter exatamente 6 dígitos');
       return;
     }
 
     const codigoDigitado = parseInt(this.codeValue, 10);
-    if (codigoDigitado === 445566) {
+    const codigoValido = await this.verificaCodigoValido(codigoDigitado);
+    console.log('Código digitado:', codigoDigitado, 'Código válido:', codigoValido);
+    if (codigoValido) {
       this.dialogRef.close({ success: true, code: this.codeValue });
     } else {
-      console.log('Has error:', this.hasError);
       this.showError('Código incorreto. Tente novamente.');
     }
   }
@@ -69,5 +71,15 @@ export class SecurityCodeModal {
   cancel() {
     this.dialogRef.close({ success: false });
   }
-  
+
+  async verificaCodigoValido(codigo: number): Promise<boolean> {
+   try {
+    const response: any = await firstValueFrom(this.authService.getCodigoSeguranca(codigo));
+    console.log('Response from server:', response);
+    return response.isValid;
+    } catch (error) {
+      console.error('Error validating code:', error);
+      return false;
+    }
+  }
 }

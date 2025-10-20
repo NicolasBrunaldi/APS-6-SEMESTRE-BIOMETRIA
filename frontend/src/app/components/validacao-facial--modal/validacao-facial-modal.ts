@@ -1,7 +1,7 @@
 import { Component, ViewChild, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup } from '@angular/forms';
-import {MatFormFieldModule} from '@angular/material/form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialogActions } from "@angular/material/dialog";
@@ -9,18 +9,20 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
-import { User } from '../../Models/User';
-import { FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import * as tf from '@tensorflow/tfjs';
 import * as faceDetection from '@tensorflow-models/face-detection';
-import { CadastroService } from '../../services/cadastro-service';
 import { MatDialogRef } from '@angular/material/dialog';
 import { SecurityCodeModal } from '../security-code-modal/security-code-modal';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { AuthService } from '../../services/auth-service';
+import { Inject } from '@angular/core';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Validators } from '@angular/forms';
 
 @Component({
-  selector: 'app-cadastro-user-modal',
+  selector: 'app-validacao-facial-modal',
   imports: [CommonModule, 
             MatFormFieldModule,
             MatSelectModule,
@@ -31,18 +33,17 @@ import { MatSnackBar } from '@angular/material/snack-bar';
             MatDividerModule, 
             MatIconModule, 
             ReactiveFormsModule],
-  templateUrl: './cadastro-user-modal.html',
-  styleUrl: './cadastro-user-modal.css'
+  templateUrl: './validacao-facial-modal.html',
+  styleUrl: './validacao-facial-modal.css'
 })
 
-export class CadastroUserModal implements OnDestroy, OnInit{
+export class ValidacaoFacialModal implements OnDestroy, OnInit{
 
-  user: User = new User("", "", "", 0, "");
-
-  cadastroForm!: FormGroup;
+  validacaoForm!: FormGroup;
   isCameraOn = false;
   capturedImage: string | null = null;
   stream: MediaStream | null = null;
+  private foto: any;
 
   private faceDetector: faceDetection.FaceDetector | null = null;
   public validationMessage: string | null = null;
@@ -52,21 +53,18 @@ export class CadastroUserModal implements OnDestroy, OnInit{
 
 
   constructor(public dialogRef: MatDialogRef<SecurityCodeModal>, 
-    private fb: FormBuilder, 
-    private cadastroService: CadastroService,
-    private snackBar: MatSnackBar
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private snackBar: MatSnackBar,
+    @Inject(MAT_DIALOG_DATA) public data: { nivelAcesso: number }
   ) {}
 
   async ngOnInit() {
+    await this.loadFaceDetectorModel();
 
-    this.cadastroForm = this.fb.group({
-      nome: [this.user.nome, Validators.required],
-      email: [this.user.email, [Validators.required, Validators.email]],
-      telefone: [this.user.telefone, [Validators.required, Validators.pattern(/^\(\d{2}\)\s\d{4,5}-\d{4}$|^\d{10,11}$/)]],
-      nivelAcesso: [this.user.nivelAcesso, Validators.required],
-      foto: [this.user.foto]
-    });
-  await this.loadFaceDetectorModel();
+    this.validacaoForm = this.fb.group({
+    imagem: [this.capturedImage, [Validators.required]]
+  });
   }
 
   // --- NOVA LÓGICA COM TENSORFLOW.JS ---
@@ -172,7 +170,7 @@ export class CadastroUserModal implements OnDestroy, OnInit{
       this.capturedImage = this.canvasElement.nativeElement.toDataURL('image/jpeg');
       
       // Atribui a imagem capturada ao objeto user
-      this.user.foto = this.capturedImage;
+      this.foto = this.capturedImage;
       
       // Para a câmera para liberar o recurso
       this.stopCamera();
@@ -192,29 +190,24 @@ export class CadastroUserModal implements OnDestroy, OnInit{
     this.stopCamera();
   }
 
-  cadastrarUser() {
-    if (this.cadastroForm.valid) {
-      const formData = this.cadastroForm.value;
-      
-      this.user.nome = formData.nome;
-      this.user.email = formData.email;
-      this.user.telefone = formData.telefone;
-      this.user.nivelAcesso = formData.nivelAcesso;
-      this.user.foto = this.capturedImage || '';
+  validarUser() {
+    if (this.validacaoForm.valid) {
+      const formData = this.validacaoForm.value;
+      this.foto = this.capturedImage || '';
 
-      this.cadastroService.cadastrarUsuario(this.user).subscribe({
+      this.authService.validaImagemUsuario(this.foto, this.data.nivelAcesso).subscribe({
         next: (response) => {
-          console.log('Usuário cadastrado com sucesso:', response);
-          this.snackBar.open('Usuário cadastrado com sucesso!', 'Fechar', { duration: 3000 });
-          this.dialogRef.close({ success: true, user: this.user });
+          console.log('Usuário validado com sucesso:', response);
+          this.snackBar.open('Usuário validado com sucesso!', 'Fechar', { duration: 3000 });
+          this.dialogRef.close({ success: true, data: response });
         },
         error: (error) => {
-          console.error('Erro ao cadastrar usuário:', error);
-          this.snackBar.open('Erro ao cadastrar usuário. Tente novamente.', 'Fechar', { duration: 3000 });
+          console.error('Erro ao validar usuário:', error);
+          this.snackBar.open(error.error.message, 'Fechar', { duration: 3000 });
         }
       });  
     } else {
-      this.cadastroForm.markAllAsTouched();
+      this.validacaoForm.markAllAsTouched();
     }
   }
 
