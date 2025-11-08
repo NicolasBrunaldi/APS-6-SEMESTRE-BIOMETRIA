@@ -6,3 +6,4 @@ face_recognition
 dlib
 mysql-connector-python
 Flask-Cors
+gunicorn

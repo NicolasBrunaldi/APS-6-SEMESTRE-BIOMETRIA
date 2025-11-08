@@ -1,5 +1,5 @@
 <div class="validacao-facial-modal-container">
-   <form *ngIf="validacaoForm" [formGroup]="validacaoForm" (ngSubmit)="validarUser()">
+   <form >
     
     <div class="biometric-container">
       <h3>Biometria Facial</h3>
@@ -12,30 +12,18 @@
       @if(isCameraOn) {
       <div class="camera-view">
         <video #videoElement autoplay playsinline></video>
-        <button mat-fab extended color="accent" type="button" (click)="captureImage()">
-          <mat-icon>photo_camera</mat-icon>
-          Capturar Imagem
-        </button>
+        <canvas #canvasElement style="display: none;"></canvas>
       </div>
     }
       @if(validationMessage) {
         <mat-error>{{ validationMessage }}</mat-error>
       }
-    @if(capturedImage !== null) {
-        <div class="snapshot-view">
-        <p>Pré-visualização:</p>
-        <img [src]="capturedImage" alt="Imagem capturada">
-        <button mat-button color="primary" type="button" (click)="startCamera()">Tirar outra foto</button>
-      </div>
-    }
-    
-    <canvas #canvasElement></canvas>
-
+      @if(isAttempting) {
+        <mat-error>{{ attemptMessage }}</mat-error>
+      }
     </div>
-    
     <mat-dialog-actions>
         <button mat-button [mat-dialog-close]="false">Cancelar</button>
-        <button mat-raised-button color="primary" type="submit">Confirmar</button>
     </mat-dialog-actions>
     </form>
 </div>

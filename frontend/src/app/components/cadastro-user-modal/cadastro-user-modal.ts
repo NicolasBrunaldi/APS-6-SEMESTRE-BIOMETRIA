@@ -39,6 +39,11 @@ export class CadastroUserModal implements OnDestroy, OnInit{
 
   user: User = new User("", "", "", 0, "");
 
+
+  public countdown: number = 5;
+  public isCountingDown = false;
+  private countdownInterval: any = null; 
+
   cadastroForm!: FormGroup;
   isCameraOn = false;
   capturedImage: string | null = null;
@@ -130,9 +135,11 @@ export class CadastroUserModal implements OnDestroy, OnInit{
       
       this.isCameraOn = true;
       
-      setTimeout(() => {
+setTimeout(() => {
         if (this.videoElement && this.videoElement.nativeElement) {
           this.videoElement.nativeElement.srcObject = this.stream;
+          // Inicia a contagem regressiva assim que a câmera ligar
+          this.startRegistrationCountdown(); 
         }
       }, 0);
       
@@ -140,6 +147,24 @@ export class CadastroUserModal implements OnDestroy, OnInit{
       this.validationMessage = "Não foi possível acessar a câmera. Verifique as permissões.";
       console.error("Erro ao acessar a câmera: ", err);
     }
+  }
+
+  startRegistrationCountdown() {
+    this.isCountingDown = true;
+    this.countdown = 5; // Reseta a contagem
+    this.validationMessage = "Fique parado, centralize seu rosto...";
+
+    this.countdownInterval = setInterval(async () => {
+      this.countdown--;
+      
+      if (this.countdown === 0) {
+        clearInterval(this.countdownInterval); // Para o intervalo
+        this.isCountingDown = false;
+        
+        // Tenta capturar a imagem
+        await this.captureImage();
+      }
+    }, 1000); // Roda a cada 1 segundo
   }
 
   async captureImage() {
@@ -154,6 +179,7 @@ export class CadastroUserModal implements OnDestroy, OnInit{
     const isFaceValid = await this.validateCurrentFrame();
 
     if (!isFaceValid) {
+      this.startRegistrationCountdown();
       return; // Interrompe o processo de captura
     }
     // Pega o contexto 2D do canvas

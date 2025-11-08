@@ -19,7 +19,7 @@ export class AuthService {
   }
 
   validaImagemUsuario(imagemBase64: string, nivelAcesso: number) : Observable<boolean> {
-
+    console.log('Chamando validaImagemUsuario com nivelAcesso');
     return this.httpClient.post<boolean>(this.URL_VALIDACAO_IMAGEM, { imagemBase64, nivelAcesso });
   }
 }

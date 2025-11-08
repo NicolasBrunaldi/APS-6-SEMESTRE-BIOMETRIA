@@ -38,15 +38,20 @@
       @if(isCameraOn) {
       <div class="camera-view">
         <video #videoElement autoplay playsinline></video>
-        <button mat-fab extended color="accent" type="button" (click)="captureImage()">
-          <mat-icon>photo_camera</mat-icon>
-          Capturar Imagem
-        </button>
       </div>
     }
+
+    @if(isCameraOn && !capturedImage) {
+    <div class="status-message">
+      @if(isCountingDown) {
+        <h2>Capturando em {{ countdown }}s...</h2>
+      }
       @if(validationMessage) {
         <mat-error>{{ validationMessage }}</mat-error>
       }
+    </div>
+  }
+
     @if(capturedImage !== null) {
         <div class="snapshot-view">
         <p>Pré-visualização:</p>
