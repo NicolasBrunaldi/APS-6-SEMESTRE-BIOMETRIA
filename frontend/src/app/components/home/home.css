@@ -1,7 +1,7 @@
 /* Container principal que ocupará a tela inteira */
 
 .titulo{
-    font-size: 48px;
+    font-size: 36px;
 }
 
 .botoes {
@@ -12,6 +12,10 @@
   /* Ativa o modo Flexbox */
   display: flex;
   color: white;
+
+  background-image: url('/assets/imagem_fundo_3.png');
+  
+  background-position: center center;
 
   /* Empilha os itens verticalmente (o h1 em cima, a div de botões embaixo) */
   flex-direction: column;
