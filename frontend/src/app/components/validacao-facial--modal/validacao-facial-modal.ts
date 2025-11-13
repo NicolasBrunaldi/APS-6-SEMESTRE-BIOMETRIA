@@ -1,7 +1,6 @@
 import { Component, ViewChild, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormGroup } from '@angular/forms';
-import {MatFormFieldModule} from '@angular/material/form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialogActions } from "@angular/material/dialog";
@@ -9,18 +8,17 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
-import { User } from '../../Models/User';
-import { FormBuilder, Validators } from '@angular/forms';
-import { ReactiveFormsModule } from '@angular/forms';
 import * as tf from '@tensorflow/tfjs';
 import * as faceDetection from '@tensorflow-models/face-detection';
-import { CadastroService } from '../../services/cadastro-service';
 import { MatDialogRef } from '@angular/material/dialog';
 import { SecurityCodeModal } from '../security-code-modal/security-code-modal';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { AuthService } from '../../services/auth-service';
+import { Inject } from '@angular/core';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 @Component({
-  selector: 'app-cadastro-user-modal',
+  selector: 'app-validacao-facial-modal',
   imports: [CommonModule, 
             MatFormFieldModule,
             MatSelectModule,
@@ -29,25 +27,21 @@ import { MatSnackBar } from '@angular/material/snack-bar';
             MatDialogModule,
             MatButtonModule, 
             MatDividerModule, 
-            MatIconModule, 
-            ReactiveFormsModule],
-  templateUrl: './cadastro-user-modal.html',
-  styleUrl: './cadastro-user-modal.css'
+            MatIconModule],
+  templateUrl: './validacao-facial-modal.html',
+  styleUrl: './validacao-facial-modal.css'
 })
 
-export class CadastroUserModal implements OnDestroy, OnInit{
+export class ValidacaoFacialModal implements OnDestroy, OnInit{
 
-  user: User = new User("", "", "", 0, "");
-
-
-  public countdown: number = 5;
-  public isCountingDown = false;
-  private countdownInterval: any = null; 
-
-  cadastroForm!: FormGroup;
   isCameraOn = false;
   capturedImage: string | null = null;
   stream: MediaStream | null = null;
+  private foto: any;
+  attemptMessage: string | null = null;
+  isDestroyed: boolean = false;
+  isAttempting: boolean = false;
+  counter = 1;
 
   private faceDetector: faceDetection.FaceDetector | null = null;
   public validationMessage: string | null = null;
@@ -57,21 +51,13 @@ export class CadastroUserModal implements OnDestroy, OnInit{
 
 
   constructor(public dialogRef: MatDialogRef<SecurityCodeModal>, 
-    private fb: FormBuilder, 
-    private cadastroService: CadastroService,
-    private snackBar: MatSnackBar
+    private authService: AuthService,
+    private snackBar: MatSnackBar,
+    @Inject(MAT_DIALOG_DATA) public data: { nivelAcesso: number }
   ) {}
 
   async ngOnInit() {
-
-    this.cadastroForm = this.fb.group({
-      nome: [this.user.nome, Validators.required],
-      email: [this.user.email, [Validators.required, Validators.email]],
-      telefone: [this.user.telefone, [Validators.required, Validators.pattern(/^\(\d{2}\)\s\d{4,5}-\d{4}$|^\d{10,11}$/)]],
-      nivelAcesso: [this.user.nivelAcesso, Validators.required],
-      foto: [this.user.foto]
-    });
-  await this.loadFaceDetectorModel();
+    await this.loadFaceDetectorModel();
   }
 
   // --- NOVA LÓGICA COM TENSORFLOW.JS ---
@@ -127,82 +113,99 @@ export class CadastroUserModal implements OnDestroy, OnInit{
   }
 
   async startCamera() {
+    if (this.isDestroyed) return; // Evita múltiplas chamadas
     this.capturedImage = null; // Reseta a imagem anterior
     try {
       // Pede permissão e obtém o stream da câmera
       this.stream = await navigator.mediaDevices.getUserMedia({ video: true });
       console.log("Câmera ligada");
-      
+
       this.isCameraOn = true;
-      
-setTimeout(() => {
+
+      // Aguarda o Angular renderizar o videoElement
+      setTimeout(() => {
         if (this.videoElement && this.videoElement.nativeElement) {
           this.videoElement.nativeElement.srcObject = this.stream;
-          // Inicia a contagem regressiva assim que a câmera ligar
-          this.startRegistrationCountdown(); 
+          this.videoElement.nativeElement.oncanplay = () => {
+            // Só inicia a validação DEPOIS que o vídeo estiver pronto
+            if (this.videoElement && this.videoElement.nativeElement) {
+              this.attemptValidation();
+            }
+          };
+        } else {
+          // Se não estiver disponível, tenta novamente em 100ms
+          setTimeout(() => this.startCamera(), 100);
         }
       }, 0);
-      
+
     } catch (err) {
       this.validationMessage = "Não foi possível acessar a câmera. Verifique as permissões.";
       console.error("Erro ao acessar a câmera: ", err);
     }
   }
 
-  startRegistrationCountdown() {
-    this.isCountingDown = true;
-    this.countdown = 5; // Reseta a contagem
-    this.validationMessage = "Fique parado, centralize seu rosto...";
+  async attemptValidation() {
+    // Não executa se o componente foi destruído ou se uma tentativa já está em andamento
+    if (this.isDestroyed || this.isAttempting) return;
 
-    this.countdownInterval = setInterval(async () => {
-      this.countdown--;
-      
-      if (this.countdown === 0) {
-        clearInterval(this.countdownInterval); // Para o intervalo
-        this.isCountingDown = false;
-        
-        // Tenta capturar a imagem
-        await this.captureImage();
-      }
-    }, 1000); // Roda a cada 1 segundo
-  }
-
-  async captureImage() {
-    if (!this.isCameraOn) return;
-
-    // Verifica se os elementos existem
-    if (!this.canvasElement || !this.videoElement) {
-      console.error('Elementos canvas ou video não encontrados');
+    this.validationMessage = null;
+    this.attemptMessage = "Validando... Mantenha o rosto parado.";
+    console.log("Iniciando tentativa de validação facial..." + this.counter);
+    // 1. Pré-validação com TensorFlow.js
+    const isFaceValid = await this.validateCurrentFrame();
+    if (!isFaceValid) {
+      this.attemptMessage = this.validationMessage || "Nenhum rosto válido detectado.";
+      this.capturedImage = null;
+      this.scheduleNextAttempt();
+      console.log("Pré-validação falhou: ");
       return;
     }
 
-    const isFaceValid = await this.validateCurrentFrame();
-
-    if (!isFaceValid) {
-      this.startRegistrationCountdown();
-      return; // Interrompe o processo de captura
-    }
-    // Pega o contexto 2D do canvas
+    // 2. Se a pré-validação for OK, captura a imagem
     const context = this.canvasElement.nativeElement.getContext('2d');
-    if (context) {
-      const video = this.videoElement.nativeElement;
-      // Define a resolução do canvas igual à do vídeo
-      this.canvasElement.nativeElement.width = video.videoWidth;
-      this.canvasElement.nativeElement.height = video.videoHeight;
-
-      // "Desenha" o quadro atual do vídeo no canvas
-
-      context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-        
-      // Converte o conteúdo do canvas para uma imagem em formato Base64
-      this.capturedImage = this.canvasElement.nativeElement.toDataURL('image/jpeg');
-      
-      // Atribui a imagem capturada ao objeto user
-      this.user.foto = this.capturedImage;
-      
-      // Para a câmera para liberar o recurso
-      this.stopCamera();
+    if (!context) {
+      this.attemptMessage = "Erro no navegador (canvas).";
+      this.capturedImage = null;
+      this.scheduleNextAttempt();
+      return;
     }
+    const video = this.videoElement.nativeElement;
+    context.canvas.width = video.videoWidth;
+    context.canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+
+    const imageBase64 = context.canvas.toDataURL('image/jpeg');
+    this.capturedImage = imageBase64; // Atualiza a pré-visualização
+
+    // 3. Envia para o Backend
+    this.authService.validaImagemUsuario(imageBase64, this.data.nivelAcesso).subscribe({
+      next: (response) => {
+        // SUCESSO!
+        this.stopCamera();
+        this.snackBar.open('Acesso Concedido!', 'Fechar', { duration: 3000 });
+        this.dialogRef.close({ success: true, data: response });
+      },
+      error: (error) => {
+        // FALHA NO BACKEND (ex: rosto não reconhecido, permissão negada)
+        this.validationMessage = error.error.message || 'Usuário não reconhecido.';
+        this.scheduleNextAttempt();
+      }
+    });
+  }
+
+  /**
+   * Agenda a próxima tentativa de validação após 3 segundos.
+   */
+  scheduleNextAttempt() {
+    this.isAttempting = false;
+    
+    // Se o componente foi destruído, não agenda uma nova tentativa
+    if (this.isDestroyed) return;
+
+    setTimeout(() => {
+      console.log("Tentativa de validação facial número: " + this.counter++);
+      this.attemptValidation();
+    }, 5000); // Tenta novamente em 5 segundos
   }
 
   stopCamera() {
@@ -215,33 +218,7 @@ setTimeout(() => {
 
   // Boa prática: garantir que a câmera seja desligada se o modal for fechado
   ngOnDestroy(): void {
+    this.isDestroyed = true;
     this.stopCamera();
   }
-
-  cadastrarUser() {
-    if (this.cadastroForm.valid) {
-      const formData = this.cadastroForm.value;
-      
-      this.user.nome = formData.nome;
-      this.user.email = formData.email;
-      this.user.telefone = formData.telefone;
-      this.user.nivelAcesso = formData.nivelAcesso;
-      this.user.foto = this.capturedImage || '';
-
-      this.cadastroService.cadastrarUsuario(this.user).subscribe({
-        next: (response) => {
-          console.log('Usuário cadastrado com sucesso:', response);
-          this.snackBar.open('Usuário cadastrado com sucesso!', 'Fechar', { duration: 3000 });
-          this.dialogRef.close({ success: true, user: this.user });
-        },
-        error: (error) => {
-          console.error('Erro ao cadastrar usuário:', error);
-          this.snackBar.open('Erro ao cadastrar usuário. Tente novamente.', 'Fechar', { duration: 3000 });
-        }
-      });  
-    } else {
-      this.cadastroForm.markAllAsTouched();
-    }
-  }
-
 }

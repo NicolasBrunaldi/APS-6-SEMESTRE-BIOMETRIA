@@ -1,0 +1,49 @@
+services:
+
+  db:
+    image: mysql:8.0
+    container_name: aps-db-prod
+    restart: always
+    environment:
+      MYSQL_DATABASE: aps_db
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - aps-network
+  
+  backend:
+    build: ./api
+    container_name: api-biometria-prod
+    restart: always
+    depends_on: 
+      - db
+    networks:
+      - aps-network
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: db
+      DB_USER: user
+      DB_PASSWORD: user
+      DB_NAME: aps_db
+
+  frontend:
+    build: ./frontend
+    container_name: frontend-prod
+    restart: always
+    networks:
+      - aps-network
+    ports:
+      - "4200:4200"
+    
+networks:
+  aps-network:
+    driver: bridge
+
+volumes:
+  db_data:

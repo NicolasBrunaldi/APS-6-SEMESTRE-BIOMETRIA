@@ -1,0 +1,26 @@
+<div class="validacao-facial-modal-container">
+   <form >
+    
+    <div class="biometric-container">
+      <h3>Biometria Facial</h3>
+      
+      <button mat-stroked-button color="primary" type="button" (click)="startCamera()">
+        <mat-icon>camera_alt</mat-icon>
+        Ligar Câmera para Registro Facial
+      </button>
+
+      @if(isCameraOn) {
+      <div class="camera-view">
+        <video #videoElement autoplay playsinline></video>
+        <canvas #canvasElement style="display: none;"></canvas>
+      </div>
+    }
+      @if(validationMessage) {
+        <mat-error style="color: rgb(255, 62, 62);">{{ validationMessage }}</mat-error>
+      }
+    </div>
+    <mat-dialog-actions>
+        <button mat-button [mat-dialog-close]="false">Cancelar</button>
+    </mat-dialog-actions>
+    </form>
+</div>

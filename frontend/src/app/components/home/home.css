@@ -1,7 +1,7 @@
 /* Container principal que ocupará a tela inteira */
 
 .titulo{
-    font-size: 48px;
+    font-size: 36px;
 }
 
 .botoes {
@@ -12,6 +12,10 @@
   /* Ativa o modo Flexbox */
   display: flex;
   color: white;
+
+  background-image: url('/assets/imagem_fundo_3.png');
+  
+  background-position: center center;
 
   /* Empilha os itens verticalmente (o h1 em cima, a div de botões embaixo) */
   flex-direction: column;
@@ -36,4 +40,14 @@
   align-items: center; /* Alinha os botões ao centro */
   gap: 15px; /* Adiciona um espaço entre cada botão */
   text-align: center; /* Centraliza o h3 */
+}
+
+.content-card {
+    background-color: white;
+    color: black;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 20px auto;
 }
