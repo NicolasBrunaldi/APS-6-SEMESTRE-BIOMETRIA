@@ -148,7 +148,7 @@ export class ValidacaoFacialModal implements OnDestroy, OnInit{
     // Não executa se o componente foi destruído ou se uma tentativa já está em andamento
     if (this.isDestroyed || this.isAttempting) return;
 
-    this.isAttempting = true;
+    this.validationMessage = null;
     this.attemptMessage = "Validando... Mantenha o rosto parado.";
     console.log("Iniciando tentativa de validação facial..." + this.counter);
     // 1. Pré-validação com TensorFlow.js
@@ -187,7 +187,7 @@ export class ValidacaoFacialModal implements OnDestroy, OnInit{
       },
       error: (error) => {
         // FALHA NO BACKEND (ex: rosto não reconhecido, permissão negada)
-        this.attemptMessage = error.error.message || 'Usuário não reconhecido.';
+        this.validationMessage = error.error.message || 'Usuário não reconhecido.';
         this.scheduleNextAttempt();
       }
     });
@@ -205,7 +205,7 @@ export class ValidacaoFacialModal implements OnDestroy, OnInit{
     setTimeout(() => {
       console.log("Tentativa de validação facial número: " + this.counter++);
       this.attemptValidation();
-    }, 3000); // Tenta novamente em 3 segundos
+    }, 5000); // Tenta novamente em 5 segundos
   }
 
   stopCamera() {

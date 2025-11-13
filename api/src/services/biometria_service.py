@@ -46,7 +46,7 @@ def predict_user(cropped_face: np.ndarray) -> (int, float):
     if confidence > CONFIDENCE_THRESHOLD:
         # Se a confiança for muito baixa (número alto), não é uma correspondência.
         raise ValueError(
-            f"Usuário não reconhecido. Confiança ({confidence}) abaixo do limiar ({CONFIDENCE_THRESHOLD}).")
+            f"Usuário não reconhecido.")
 
     # Se a confiança for boa, retorne o ID do usuário (label)
     return label, confidence
